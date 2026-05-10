@@ -91,7 +91,7 @@ app.get('/api/instagram/:username', async (req, res) => {
   const { username } = req.params;
   try {
     const response = await axios.post(`https://instagram-scraper-stable-api.p.rapidapi.com/ig_get_fb_profile.php`,
-      new URLSearchParams({ username_or_url: username, data: 'basic' }),
+      `username_or_url=${encodeURIComponent(username)}&data=basic`,
       {
         headers: {
           'x-rapidapi-key': RAPIDAPI_KEY,
@@ -101,14 +101,14 @@ app.get('/api/instagram/:username', async (req, res) => {
       }
     );
     const data = response.data;
-    if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+    if (!data?.username) {
       return res.status(404).json({ error: 'Instagram user not found' });
     }
     res.json({
-      username: data.username || username,
-      nickname: data.full_name || data.name || username,
-      avatar: data.profile_pic_url_hd || data.profile_pic_url || '',
-      bio: data.biography || data.bio || '',
+      username: data.username,
+      nickname: data.full_name || data.username,
+      avatar: data.hd_profile_pic_url_info?.url || data.profile_pic_url || '',
+      bio: data.biography || '',
       followers: data.follower_count || 0,
       following: data.following_count || 0,
       posts: data.media_count || 0,
