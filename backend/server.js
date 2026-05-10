@@ -25,6 +25,7 @@ if (process.env.NODE_ENV === 'production') {
 app.get('/api/tiktok/:username', async (req, res) => {
   const { username } = req.params;
   try {
+    console.log(`[TikTok API] Fetching user: ${username}, Key: ${RAPIDAPI_KEY ? 'set' : 'NOT SET'}`);
     const response = await axios.get(`https://tiktok-api23.p.rapidapi.com/api/user/info`, {
       params: { uniqueId: username },
       headers: {
@@ -33,6 +34,7 @@ app.get('/api/tiktok/:username', async (req, res) => {
       },
     });
     const data = response.data;
+    console.log(`[TikTok API] Response:`, JSON.stringify(data).substring(0, 200));
     const user = data?.userInfo?.user || data?.user || {};
     const stats = data?.userInfo?.stats || data?.stats || {};
     const shareMeta = data?.shareMeta || {};
@@ -51,6 +53,7 @@ app.get('/api/tiktok/:username', async (req, res) => {
       verified: user.verified,
     });
   } catch (err) {
+    console.log(`[TikTok API Error]`, err.message);
     res.status(500).json({ error: 'Failed to fetch TikTok data', detail: err.message });
   }
 });
