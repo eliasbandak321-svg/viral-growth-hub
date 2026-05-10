@@ -88,11 +88,11 @@ app.get('/api/tiktok/:username/videos', async (req, res) => {
 app.get('/api/instagram/:username', async (req, res) => {
   const { username } = req.params;
   try {
-    const response = await axios.get(`https://instagram-scraper-api2.p.rapidapi.com/v1/info`, {
+    const response = await axios.get(`https://instagram-scraper-stable-api.p.rapidapi.com/v1/info`, {
       params: { username_or_id_or_url: username },
       headers: {
         'x-rapidapi-key': RAPIDAPI_KEY,
-        'x-rapidapi-host': 'instagram-scraper-api2.p.rapidapi.com',
+        'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com',
       },
     });
     const data = response.data;
