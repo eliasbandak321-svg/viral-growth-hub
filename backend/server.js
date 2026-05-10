@@ -95,17 +95,20 @@ app.get('/api/instagram/:username', async (req, res) => {
         'x-rapidapi-host': 'instagram-scraper-api2.p.rapidapi.com',
       },
     });
-    const user = response.data?.data;
-    if (!user) return res.status(404).json({ error: 'Instagram user not found' });
+    const data = response.data;
+    const user = data?.data || data?.user || data?.graphql?.user || data;
+    if (!user || (!user.username && !user.follower_count && !user.edge_followed_by)) {
+      return res.status(404).json({ error: 'Instagram user not found', raw: data });
+    }
     res.json({
-      username: user.username,
-      nickname: user.full_name,
-      avatar: user.profile_pic_url_hd || user.profile_pic_url,
-      bio: user.biography,
-      followers: user.follower_count,
-      following: user.following_count,
-      posts: user.media_count,
-      verified: user.is_verified,
+      username: user.username || username,
+      nickname: user.full_name || user.name || username,
+      avatar: user.profile_pic_url_hd || user.profile_pic_url || '',
+      bio: user.biography || user.bio || '',
+      followers: user.follower_count || user.edge_followed_by?.count || 0,
+      following: user.following_count || user.edge_follow?.count || 0,
+      posts: user.media_count || user.edge_owner_to_timeline_media?.count || 0,
+      verified: user.is_verified || user.is_professional_account || false,
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch Instagram data', detail: err.message });
