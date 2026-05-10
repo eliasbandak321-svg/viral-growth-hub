@@ -90,27 +90,29 @@ app.get('/api/tiktok/:username/videos', async (req, res) => {
 app.get('/api/instagram/:username', async (req, res) => {
   const { username } = req.params;
   try {
-    const response = await axios.get(`https://instagram-scraper-stable-api.p.rapidapi.com/v1/info`, {
-      params: { username_or_id_or_url: username },
-      headers: {
-        'x-rapidapi-key': RAPIDAPI_KEY,
-        'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com',
-      },
-    });
+    const response = await axios.post(`https://instagram-scraper-stable-api.p.rapidapi.com/ig_get_fb_profile.php`,
+      new URLSearchParams({ username_or_url: username, data: 'basic' }),
+      {
+        headers: {
+          'x-rapidapi-key': RAPIDAPI_KEY,
+          'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
     const data = response.data;
-    const user = data?.data || data?.user || data?.graphql?.user || data;
-    if (!user || (!user.username && !user.follower_count && !user.edge_followed_by)) {
-      return res.status(404).json({ error: 'Instagram user not found', raw: data });
+    if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+      return res.status(404).json({ error: 'Instagram user not found' });
     }
     res.json({
-      username: user.username || username,
-      nickname: user.full_name || user.name || username,
-      avatar: user.profile_pic_url_hd || user.profile_pic_url || '',
-      bio: user.biography || user.bio || '',
-      followers: user.follower_count || user.edge_followed_by?.count || 0,
-      following: user.following_count || user.edge_follow?.count || 0,
-      posts: user.media_count || user.edge_owner_to_timeline_media?.count || 0,
-      verified: user.is_verified || user.is_professional_account || false,
+      username: data.username || username,
+      nickname: data.full_name || data.name || username,
+      avatar: data.profile_pic_url_hd || data.profile_pic_url || '',
+      bio: data.biography || data.bio || '',
+      followers: data.follower_count || 0,
+      following: data.following_count || 0,
+      posts: data.media_count || 0,
+      verified: data.is_verified || false,
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch Instagram data', detail: err.message });
