@@ -1,77 +1,52 @@
 import React, { useState } from 'react';
 import './App.css';
-import AccountInsights from './components/AccountInsights';
-import TrendResearch from './components/TrendResearch';
-import ScriptGenerator from './components/ScriptGenerator';
-import ContentCalendar from './components/ContentCalendar';
-import NicheIntelligence from './components/NicheIntelligence';
-import Analytics from './components/Analytics';
-import LiveTracking from './components/LiveTracking';
-import CompetitorTracker from './components/CompetitorTracker';
-
-const tabs = [
-  { id: 'live', label: '📡 Live Tracking', isNew: true },
-  { id: 'insights', label: '📊 Account Insights' },
-  { id: 'trends', label: '📈 Trends' },
-  { id: 'scripts', label: '✍️ Script Generator' },
-  { id: 'calendar', label: '📅 Calendar' },
-  { id: 'niche', label: '🎯 Niche Intel' },
-  { id: 'competitors', label: '🕵️ Competitors', isNew: true },
-  { id: 'analytics', label: '📉 Analytics' },
-];
+import AccountConnect from './components/AccountConnect';
+import Dashboard from './components/Dashboard';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('live');
+  const [accounts, setAccounts] = useState(null);
+  const [tiktokUser, setTiktokUser] = useState('');
+  const [instaUser, setInstaUser] = useState('');
+
+  const handleAccountLoaded = (data, tikUser, igUser) => {
+    setAccounts(data);
+    setTiktokUser(tikUser);
+    setInstaUser(igUser);
+  };
+
+  const handleDisconnect = () => {
+    setAccounts(null);
+    setTiktokUser('');
+    setInstaUser('');
+  };
 
   return (
     <div className="App">
       <header className="app-header">
         <div className="header-content">
           <h1>🚀 Viral Growth Hub</h1>
-          <p>Master TikTok & Instagram with AI-Powered Tools</p>
+          <p>AI-Powered TikTok & Instagram Growth Tool</p>
         </div>
+        {accounts && (
+          <button
+            onClick={handleDisconnect}
+            style={{ position: 'absolute', right: '20px', top: '20px', background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}
+          >
+            Switch Account
+          </button>
+        )}
       </header>
 
-      <nav className="tab-navigation">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-            {tab.isNew && (
-              <span style={{
-                marginLeft: '6px',
-                background: '#ff6b35',
-                color: 'white',
-                fontSize: '0.65rem',
-                padding: '2px 6px',
-                borderRadius: '10px',
-                fontWeight: '700',
-              }}>NEW</span>
-            )}
-          </button>
-        ))}
-      </nav>
-
-      <main className="app-content">
-        {activeTab === 'live' && (
-          <div className="card"><LiveTracking /></div>
+      <main className="app-content" style={{ maxWidth: accounts ? '1200px' : '600px' }}>
+        {!accounts ? (
+          <AccountConnect onAccountLoaded={handleAccountLoaded} />
+        ) : (
+          <Dashboard accounts={accounts} tiktokUser={tiktokUser} instaUser={instaUser} />
         )}
-        {activeTab === 'insights' && <AccountInsights />}
-        {activeTab === 'trends' && <TrendResearch />}
-        {activeTab === 'scripts' && <ScriptGenerator />}
-        {activeTab === 'calendar' && <ContentCalendar />}
-        {activeTab === 'niche' && <NicheIntelligence />}
-        {activeTab === 'competitors' && (
-          <div className="card"><CompetitorTracker /></div>
-        )}
-        {activeTab === 'analytics' && <Analytics />}
       </main>
 
       <footer className="app-footer">
-        <p>Built for creators | Viral Growth Hub v2.0</p>
+        <p>Viral Growth Hub — Built for creators 🎬</p>
       </footer>
     </div>
   );
