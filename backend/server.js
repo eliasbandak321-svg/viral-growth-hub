@@ -25,7 +25,6 @@ if (process.env.NODE_ENV === 'production') {
 app.get('/api/tiktok/:username', async (req, res) => {
   const { username } = req.params;
   try {
-    console.log(`[TikTok API] Fetching user: ${username}, Key: ${RAPIDAPI_KEY ? 'set' : 'NOT SET'}`);
     const response = await axios.get(`https://tiktok-api23.p.rapidapi.com/api/user/info`, {
       params: { uniqueId: username },
       headers: {
@@ -34,26 +33,26 @@ app.get('/api/tiktok/:username', async (req, res) => {
       },
     });
     const data = response.data;
-    console.log(`[TikTok API] Response:`, JSON.stringify(data).substring(0, 200));
-    const user = data?.userInfo?.user || data?.user || {};
-    const stats = data?.userInfo?.stats || data?.stats || {};
+    const stats = data?.userInfo?.stats || {};
     const shareMeta = data?.shareMeta || {};
-    if (!stats.followerCount && !user.uniqueId) {
-      return res.status(404).json({ error: 'TikTok user not found', raw: data });
+    const title = shareMeta.title || '';
+
+    if (!stats.followerCount) {
+      return res.status(404).json({ error: 'TikTok user not found' });
     }
+
     res.json({
-      username: user.uniqueId || username,
-      nickname: user.nickname || shareMeta.title || username,
-      avatar: user.avatarLarger || user.avatarMedium || '',
-      bio: user.signature || '',
+      username: username,
+      nickname: title.split(' on TikTok')[0] || username,
+      avatar: data?.userInfo?.user?.avatarLarger || data?.userInfo?.user?.avatarMedium || '',
+      bio: shareMeta.desc || '',
       followers: stats.followerCount || 0,
       following: stats.followingCount || 0,
       likes: stats.heartCount || stats.heart || 0,
       videos: stats.videoCount,
-      verified: user.verified,
+      verified: false,
     });
   } catch (err) {
-    console.log(`[TikTok API Error]`, err.message);
     res.status(500).json({ error: 'Failed to fetch TikTok data', detail: err.message });
   }
 });
