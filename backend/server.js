@@ -32,17 +32,21 @@ app.get('/api/tiktok/:username', async (req, res) => {
         'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com',
       },
     });
-    const user = response.data?.userInfo?.user;
-    const stats = response.data?.userInfo?.stats;
-    if (!user) return res.status(404).json({ error: 'TikTok user not found' });
+    const data = response.data;
+    const user = data?.userInfo?.user || data?.user || {};
+    const stats = data?.userInfo?.stats || data?.stats || {};
+    const shareMeta = data?.shareMeta || {};
+    if (!stats.followerCount && !user.uniqueId) {
+      return res.status(404).json({ error: 'TikTok user not found', raw: data });
+    }
     res.json({
-      username: user.uniqueId,
-      nickname: user.nickname,
-      avatar: user.avatarLarger,
-      bio: user.signature,
-      followers: stats.followerCount,
-      following: stats.followingCount,
-      likes: stats.heartCount,
+      username: user.uniqueId || username,
+      nickname: user.nickname || shareMeta.title || username,
+      avatar: user.avatarLarger || user.avatarMedium || '',
+      bio: user.signature || '',
+      followers: stats.followerCount || 0,
+      following: stats.followingCount || 0,
+      likes: stats.heartCount || stats.heart || 0,
       videos: stats.videoCount,
       verified: user.verified,
     });
