@@ -60,8 +60,19 @@ app.get('/api/tiktok/:username', async (req, res) => {
 app.get('/api/tiktok/:username/videos', async (req, res) => {
   const { username } = req.params;
   try {
+    // First get secUid from user info
+    const userRes = await axios.get(`https://tiktok-api23.p.rapidapi.com/api/user/info`, {
+      params: { uniqueId: username },
+      headers: {
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com',
+      },
+    });
+    const secUid = userRes.data?.userInfo?.user?.secUid;
+    if (!secUid) return res.json([]);
+
     const response = await axios.get(`https://tiktok-api23.p.rapidapi.com/api/user/posts`, {
-      params: { uniqueId: username, count: 10 },
+      params: { secUid: secUid, count: 10 },
       headers: {
         'x-rapidapi-key': RAPIDAPI_KEY,
         'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com',
