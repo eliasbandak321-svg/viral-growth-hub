@@ -78,7 +78,7 @@ app.get('/api/tiktok/:username/videos', async (req, res) => {
         'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com',
       },
     });
-    const items = response.data?.itemList || [];
+    const items = response.data?.data?.itemList || response.data?.itemList || [];
     const videos = items.map(item => ({
       id: item.id,
       description: item.desc,
@@ -127,6 +127,34 @@ app.get('/api/instagram/:username', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch Instagram data', detail: err.message });
+  }
+});
+
+app.get('/api/instagram/:username/posts', async (req, res) => {
+  const { username } = req.params;
+  try {
+    const response = await axios.get(`https://instagram-scraper-stable-api.p.rapidapi.com/v1/posts`, {
+      params: { username_or_id_or_url: username, count: 10 },
+      headers: {
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        'x-rapidapi-host': 'instagram-scraper-stable-api.p.rapidapi.com',
+      },
+    });
+    const items = response.data?.data?.items || response.data?.items || [];
+    const posts = items.map(item => ({
+      id: item.id,
+      description: item.caption?.text || '',
+      views: item.view_count || item.play_count || 0,
+      likes: item.like_count || 0,
+      comments: item.comment_count || 0,
+      shares: item.share_count || 0,
+      cover: item.image_versions2?.candidates?.[0]?.url || item.thumbnail_url || '',
+      date: new Date(item.taken_at * 1000).toLocaleDateString(),
+      type: item.media_type === 2 ? 'video' : 'image',
+    }));
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch Instagram posts', detail: err.message });
   }
 });
 

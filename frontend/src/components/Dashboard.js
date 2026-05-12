@@ -6,6 +6,7 @@ const API = process.env.REACT_APP_API_URL || (window.location.hostname === 'loca
 const Dashboard = ({ accounts, tiktokUser, instaUser }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [tiktokVideos, setTiktokVideos] = useState([]);
+  const [instaPosts, setInstaPosts] = useState([]);
   const [niche, setNiche] = useState('');
   const [topic, setTopic] = useState('');
   const [selectedHook, setSelectedHook] = useState('');
@@ -25,7 +26,12 @@ const Dashboard = ({ accounts, tiktokUser, instaUser }) => {
         .then(r => setTiktokVideos(r.data))
         .catch(() => {});
     }
-  }, [tiktokUser]);
+    if (instaUser) {
+      axios.get(`${API}/instagram/${instaUser}/posts`)
+        .then(r => setInstaPosts(r.data))
+        .catch(() => {});
+    }
+  }, [tiktokUser, instaUser]);
 
   const setLoad = (key, val) => setLoading(prev => ({ ...prev, [key]: val }));
 
@@ -297,36 +303,65 @@ const Dashboard = ({ accounts, tiktokUser, instaUser }) => {
       {/* Videos Tab */}
       {activeTab === 'videos' && (
         <div className="card">
-          <h3>🎬 Your Recent Videos</h3>
-          {tiktokVideos.length === 0 ? (
-            <p style={{ color: '#999' }}>No videos found or TikTok account not connected.</p>
-          ) : (
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Description</th>
-                    <th>Views</th>
-                    <th>Likes</th>
-                    <th>Comments</th>
-                    <th>Shares</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tiktokVideos.map(v => (
-                    <tr key={v.id}>
-                      <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.description || 'No caption'}</td>
-                      <td>{v.views?.toLocaleString()}</td>
-                      <td>{v.likes?.toLocaleString()}</td>
-                      <td>{v.comments?.toLocaleString()}</td>
-                      <td>{v.shares?.toLocaleString()}</td>
-                      <td>{v.date}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <h3>🎬 Your Recent Posts</h3>
+
+          {/* TikTok Videos */}
+          {tiktokUser && (
+            <>
+              <h4 style={{ marginTop: '20px', marginBottom: '10px' }}>🎵 TikTok Videos</h4>
+              {tiktokVideos.length === 0 ? (
+                <p style={{ color: '#999' }}>No TikTok videos found.</p>
+              ) : (
+                <div className="table-container">
+                  <table>
+                    <thead>
+                      <tr><th>Description</th><th>Views</th><th>Likes</th><th>Comments</th><th>Shares</th><th>Date</th></tr>
+                    </thead>
+                    <tbody>
+                      {tiktokVideos.map(v => (
+                        <tr key={v.id}>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.description || 'No caption'}</td>
+                          <td>{v.views?.toLocaleString()}</td>
+                          <td>{v.likes?.toLocaleString()}</td>
+                          <td>{v.comments?.toLocaleString()}</td>
+                          <td>{v.shares?.toLocaleString()}</td>
+                          <td>{v.date}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Instagram Posts */}
+          {instaUser && (
+            <>
+              <h4 style={{ marginTop: '25px', marginBottom: '10px' }}>📸 Instagram Posts</h4>
+              {instaPosts.length === 0 ? (
+                <p style={{ color: '#999' }}>No Instagram posts found.</p>
+              ) : (
+                <div className="table-container">
+                  <table>
+                    <thead>
+                      <tr><th>Caption</th><th>Type</th><th>Likes</th><th>Comments</th><th>Date</th></tr>
+                    </thead>
+                    <tbody>
+                      {instaPosts.map(p => (
+                        <tr key={p.id}>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description || 'No caption'}</td>
+                          <td>{p.type === 'video' ? '🎬 Video' : '🖼️ Image'}</td>
+                          <td>{p.likes?.toLocaleString()}</td>
+                          <td>{p.comments?.toLocaleString()}</td>
+                          <td>{p.date}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
